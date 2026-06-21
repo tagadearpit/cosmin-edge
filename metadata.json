@@ -1,0 +1,8 @@
+{
+  "name": "Remix: Cosmic Edge",
+  "description": "A cinematic cosmic website experience with fluid animations and glassmorphism.",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}
