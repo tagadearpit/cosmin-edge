@@ -8,7 +8,7 @@ interface MagneticProps {
   intensity?: number;
 }
 
-export default function Magnetic({ children, intensity = 0.2 }: MagneticProps) {
+export default function Magnetic({ children, intensity = 0.18 }: MagneticProps) {
   const ref = useRef<HTMLDivElement>(null);
   const [position, setPosition] = useState({ x: 0, y: 0 });
 
@@ -26,14 +26,20 @@ export default function Magnetic({ children, intensity = 0.2 }: MagneticProps) {
   };
 
   const { x, y } = position;
+
   return (
     <motion.div
       ref={ref}
       onMouseMove={handleMouse}
       onMouseLeave={reset}
       animate={{ x, y }}
-      transition={{ type: "spring" as const, stiffness: 150, damping: 15, mass: 0.1 }}
-      style={{ display: "inline-flex" }}
+      transition={{
+        type: 'spring',
+        stiffness: 180,
+        damping: 18,
+        mass: 0.12,
+      }}
+      style={{ display: 'inline-flex', willChange: 'transform' }}
     >
       {children}
     </motion.div>
