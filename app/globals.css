@@ -1,11 +1,23 @@
 @import "tailwindcss";
 
+/* Global base styles for Cosmic Edge */
 @layer base {
   body {
+    cursor: none; /* Custom cursor is used throughout the site */
+  }
+
+  a,
+  button,
+  input,
+  select,
+  textarea,
+  [role="button"] {
     cursor: none;
   }
-  
-  a, button, input, select, textarea, [role="button"] {
-    cursor: none;
+
+  /* Improve text rendering */
+  html {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
   }
 }
