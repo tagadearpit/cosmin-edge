@@ -1,4 +1,4 @@
-import type {Metadata} from 'next';
+import type { Metadata } from 'next';
 import { Outfit, JetBrains_Mono } from 'next/font/google';
 import CustomCursor from '@/components/CustomCursor';
 import SmoothScroller from '@/components/SmoothScroller';
@@ -17,14 +17,21 @@ const jetbrainsMono = JetBrains_Mono({
 });
 
 export const metadata: Metadata = {
-  title: 'Cosmic Edge | Premium Experience',
-  description: 'A cinematic cosmic experience built for the future.',
+  title: 'Cosmic Edge | Premium Cosmic Experience',
+  description: 'A cinematic and immersive cosmic web experience with fluid animations, glassmorphism design, and AI-powered content.',
 };
 
-export default function RootLayout({children}: {children: React.ReactNode}) {
+export default function RootLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
   return (
     <html lang="en" className={`${outfit.variable} ${jetbrainsMono.variable} dark`}>
-      <body className="antialiased bg-black text-white selection:bg-violet-500/30 selection:text-white" suppressHydrationWarning>
+      <body
+        className="antialiased bg-black text-white selection:bg-violet-500/30 selection:text-white"
+        suppressHydrationWarning
+      >
         <SmoothScroller>
           <CustomCursor />
           {children}
