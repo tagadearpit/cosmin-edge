@@ -1,9 +1,17 @@
 @import "tailwindcss";
 
-/* Global base styles for Cosmic Edge */
+/* Global base styles for Cosmic Edge - optimized for smoothness */
 @layer base {
+  html {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+    scroll-behavior: smooth; /* Fallback when Lenis is not active */
+  }
+
   body {
     cursor: none; /* Custom cursor is used throughout the site */
+    overflow-x: hidden;
   }
 
   a,
@@ -15,9 +23,14 @@
     cursor: none;
   }
 
-  /* Improve text rendering */
-  html {
-    -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
+  /* GPU acceleration hints for animated elements */
+  .will-change-transform {
+    will-change: transform;
+  }
+
+  /* Smoother image and video rendering */
+  img,
+  video {
+    image-rendering: -webkit-optimize-contrast;
   }
 }
