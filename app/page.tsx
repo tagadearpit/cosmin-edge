@@ -12,13 +12,9 @@ export default function Home() {
       <div className="fixed inset-0 z-0">
         <ParticleBackground />
       </div>
-      <div className="relative z-10 hidden sm:block">
-        <Navbar />
-      </div>
-      <div className="relative z-10 sm:hidden">
-        <Navbar />
-      </div>
+
       <div className="relative z-10">
+        <Navbar />
         <Hero />
         <CommandCenter />
         <UniverseMap />
