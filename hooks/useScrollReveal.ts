@@ -23,27 +23,28 @@ export function useScrollReveal(
       gsap.fromTo(
         chars,
         {
-          y: options?.yOffset || 40,
+          y: options?.yOffset ?? 32,
           opacity: 0,
-          rotateX: -45,
-          scale: 0.9,
-          filter: 'blur(10px)',
-          transformOrigin: '50% 50% -20px'
+          rotateX: -30,
+          scale: 0.94,
+          filter: 'blur(8px)',
+          transformOrigin: '50% 50% -15px',
         },
         {
           scrollTrigger: {
             trigger: ref.current,
-            start: 'top 85%',
+            start: 'top 88%',
+            toggleActions: 'play none none none',
           },
           y: 0,
           opacity: 1,
           rotateX: 0,
           scale: 1,
           filter: 'blur(0px)',
-          stagger: options?.stagger || 0.03,
-          duration: options?.duration || 1,
-          ease: 'back.out(1.2)',
-          delay: options?.delay || 0,
+          stagger: options?.stagger ?? 0.025,
+          duration: options?.duration ?? 0.95,
+          ease: 'power3.out',
+          delay: options?.delay ?? 0,
         }
       );
     }, ref);
