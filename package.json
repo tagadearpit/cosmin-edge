@@ -1,7 +1,8 @@
 {
-  "name": "ai-studio-applet",
+  "name": "cosmin-edge",
   "version": "0.1.0",
   "private": true,
+  "description": "A cinematic and immersive cosmic web experience built with Next.js, TypeScript, GSAP and Gemini AI",
   "scripts": {
     "dev": "next dev",
     "build": "next build",
