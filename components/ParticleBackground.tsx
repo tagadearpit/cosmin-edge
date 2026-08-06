@@ -10,8 +10,6 @@ interface Particle {
   size: number;
   speedX: number;
   speedY: number;
-  baseX: number;
-  baseY: number;
   opacity: number;
 }
 
@@ -20,142 +18,146 @@ export default function ParticleBackground() {
   const containerRef = useRef<HTMLDivElement>(null);
 
   const { scrollY } = useScroll();
-  const yOffset = useTransform(scrollY, [0, 5000], [0, -1000]); // Moves up as you scroll down
-  const rotateX = useTransform(scrollY, [0, 5000], [0, 30]);
+  const yOffset = useTransform(scrollY, [0, 5000], [0, -600]);
+  const rotateX = useTransform(scrollY, [0, 5000], [0, 15]);
 
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
-    
-    const ctx = canvas.getContext('2d');
+
+    const ctx = canvas.getContext('2d', { alpha: true });
     if (!ctx) return;
-    
+
     let particlesArray: Particle[] = [];
     let animationFrameId: number;
     let scrollOffset = 0;
-    
-    let mouse = {
+    let isVisible = true;
+
+    const mouse = {
       x: -1000,
       y: -1000,
-      radius: 150
+      radius: 120,
     };
 
+    // Detect mobile to reduce particle count
+    const isMobile = window.innerWidth < 768;
+
     const resizeCanvas = () => {
-      canvas.width = window.innerWidth;
-      canvas.height = window.innerHeight;
+      const dpr = Math.min(window.devicePixelRatio || 1, 2);
+      canvas.width = window.innerWidth * dpr;
+      canvas.height = window.innerHeight * dpr;
+      canvas.style.width = `${window.innerWidth}px`;
+      canvas.style.height = `${window.innerHeight}px`;
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
       init();
     };
 
-    window.addEventListener('resize', resizeCanvas);
-    
     const handleMouseMove = (event: MouseEvent) => {
       mouse.x = event.clientX;
       mouse.y = event.clientY;
     };
-    
-    const handleMouseLeave = () => {
-      // mouse.x = -1000;
-      // mouse.y = -1000;
-    };
 
     const handleScroll = () => {
-        scrollOffset = window.scrollY;
+      scrollOffset = window.scrollY;
     };
 
-    window.addEventListener('mousemove', handleMouseMove);
-    window.addEventListener('mouseleave', handleMouseLeave);
-    window.addEventListener('scroll', handleScroll);
+    // Pause animation when tab is not visible (better performance)
+    const handleVisibility = () => {
+      isVisible = document.visibilityState === 'visible';
+      if (isVisible) draw();
+    };
+
+    window.addEventListener('resize', resizeCanvas);
+    window.addEventListener('mousemove', handleMouseMove, { passive: true });
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    document.addEventListener('visibilitychange', handleVisibility);
 
     const init = () => {
       particlesArray = [];
-      const numberOfParticles = Math.min((canvas.width * canvas.height) / 4000, 300); // More particles!
-      
+      const area = canvas.width * canvas.height;
+      // Fewer particles on mobile for smoothness
+      const numberOfParticles = isMobile
+        ? Math.min(Math.floor(area / 18000), 80)
+        : Math.min(Math.floor(area / 9000), 180);
+
       for (let i = 0; i < numberOfParticles; i++) {
-        // Z property gives depth (parallax layer)
-        const z = Math.random() * 3 + 0.5;
-        const size = (Math.random() * 1.5 + 0.2) * (z / 2);
-        const x = Math.random() * canvas.width;
-        const y = Math.random() * canvas.height;
-        const speedX = (Math.random() - 0.5) * 0.2;
-        const speedY = (Math.random() - 0.5) * 0.2;
-        const opacity = Math.random() * 0.5 + 0.1;
-        
+        const z = Math.random() * 2.5 + 0.5;
+        const size = (Math.random() * 1.4 + 0.3) * (z / 2);
         particlesArray.push({
-          x, y, z, size, speedX, speedY, baseX: x, baseY: y, opacity
+          x: Math.random() * window.innerWidth,
+          y: Math.random() * window.innerHeight,
+          z,
+          size,
+          speedX: (Math.random() - 0.5) * 0.15,
+          speedY: (Math.random() - 0.5) * 0.15,
+          opacity: Math.random() * 0.45 + 0.15,
         });
       }
     };
 
     const draw = () => {
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-      
+      if (!isVisible) return;
+
+      ctx.clearRect(0, 0, window.innerWidth, window.innerHeight);
+
       for (let i = 0; i < particlesArray.length; i++) {
         const p = particlesArray[i];
-        
+
+        let renderY = p.y - scrollOffset * 0.15 * p.z;
+        renderY = ((renderY % window.innerHeight) + window.innerHeight) % window.innerHeight;
+
         ctx.beginPath();
-        
-        // Simulated scroll position (p.y minus scroll offset scaled by p.z depth)
-        let renderY = p.y - (scrollOffset * 0.2 * p.z);
-        // wrap Y
-        renderY = ((renderY % canvas.height) + canvas.height) % canvas.height;
-        
         ctx.arc(p.x, renderY, p.size, 0, Math.PI * 2);
-        
-        // Vary color slightly based on z-depth
-        ctx.fillStyle = `rgba(${167 + p.z*10}, ${139 + p.z*20}, 250, ${p.opacity * (p.z/2)})`;
+        ctx.fillStyle = `rgba(${167 + p.z * 8}, ${139 + p.z * 15}, 250, ${p.opacity * (p.z / 2.2)})`;
         ctx.fill();
-        
-        // Update positions
+
+        // Gentle movement
         p.x += p.speedX;
-        p.y += p.speedY; // actual y moves slowly
-        
-        // Mouse interaction (subtle repel)
+        p.y += p.speedY;
+
+        // Soft mouse interaction
         const dx = mouse.x - p.x;
         const dy = mouse.y - renderY;
         const distance = Math.sqrt(dx * dx + dy * dy);
-        
-        if (distance < mouse.radius) {
-          const forceDirectionX = dx / distance;
-          const forceDirectionY = dy / distance;
-          const force = (mouse.radius - distance) / mouse.radius;
-          const moveX = forceDirectionX * force * 1.5;
-          const moveY = forceDirectionY * force * 1.5;
-          
-          p.x -= moveX;
-          p.y -= moveY;
-        }
-        
-        // Wrap around edges
-        if (p.x < 0) p.x = canvas.width;
-        if (p.x > canvas.width) p.x = 0;
-      }
-      
-      // Connect nearby particles with lines for a constellation effect
-      for (let a = 0; a < particlesArray.length; a++) {
-        for (let b = a; b < particlesArray.length; b++) {
-          // Calculate render Y positions
-          let renderYa = ((particlesArray[a].y - (scrollOffset * 0.2 * particlesArray[a].z)) % canvas.height + canvas.height) % canvas.height;
-          let renderYb = ((particlesArray[b].y - (scrollOffset * 0.2 * particlesArray[b].z)) % canvas.height + canvas.height) % canvas.height;
 
-          const dx = particlesArray[a].x - particlesArray[b].x;
-          const dy = renderYa - renderYb;
-          const distance = dx * dx + dy * dy;
-          
-          if (distance < 15000) {
-            // Only connect if same relative layer
-            if (Math.abs(particlesArray[a].z - particlesArray[b].z) < 1.0) {
-              const opacity = 1 - distance / 15000;
-              ctx.beginPath();
-              ctx.strokeStyle = `rgba(139, 92, 246, ${opacity * 0.15})`;
-              ctx.lineWidth = 0.5 * (particlesArray[a].z / 2);
-              ctx.moveTo(particlesArray[a].x, renderYa);
-              ctx.lineTo(particlesArray[b].x, renderYb);
-              ctx.stroke();
-            }
+        if (distance < mouse.radius) {
+          const force = (mouse.radius - distance) / mouse.radius;
+          p.x -= (dx / distance) * force * 1.1;
+          p.y -= (dy / distance) * force * 1.1;
+        }
+
+        // Wrap edges
+        if (p.x < 0) p.x = window.innerWidth;
+        if (p.x > window.innerWidth) p.x = 0;
+      }
+
+      // Lighter constellation lines (performance friendly)
+      for (let a = 0; a < particlesArray.length; a += 2) {
+        for (let b = a + 1; b < particlesArray.length; b += 3) {
+          const pa = particlesArray[a];
+          const pb = particlesArray[b];
+
+          if (Math.abs(pa.z - pb.z) > 0.9) continue;
+
+          let ya = ((pa.y - scrollOffset * 0.15 * pa.z) % window.innerHeight + window.innerHeight) % window.innerHeight;
+          let yb = ((pb.y - scrollOffset * 0.15 * pb.z) % window.innerHeight + window.innerHeight) % window.innerHeight;
+
+          const dx = pa.x - pb.x;
+          const dy = ya - yb;
+          const distSq = dx * dx + dy * dy;
+
+          if (distSq < 12000) {
+            const opacity = 1 - distSq / 12000;
+            ctx.beginPath();
+            ctx.strokeStyle = `rgba(139, 92, 246, ${opacity * 0.12})`;
+            ctx.lineWidth = 0.4;
+            ctx.moveTo(pa.x, ya);
+            ctx.lineTo(pb.x, yb);
+            ctx.stroke();
           }
         }
       }
-      
+
       animationFrameId = requestAnimationFrame(draw);
     };
 
@@ -165,17 +167,22 @@ export default function ParticleBackground() {
     return () => {
       window.removeEventListener('resize', resizeCanvas);
       window.removeEventListener('mousemove', handleMouseMove);
-      window.removeEventListener('mouseleave', handleMouseLeave);
       window.removeEventListener('scroll', handleScroll);
+      document.removeEventListener('visibilitychange', handleVisibility);
       cancelAnimationFrame(animationFrameId);
     };
   }, []);
 
   return (
-    <motion.div ref={containerRef} className="absolute inset-0 z-10 pointer-events-none mix-blend-screen perspective-1000" style={{ y: yOffset, rotateX }}>
-      <canvas 
-        ref={canvasRef} 
+    <motion.div
+      ref={containerRef}
+      className="absolute inset-0 z-10 pointer-events-none mix-blend-screen"
+      style={{ y: yOffset, rotateX, willChange: 'transform' }}
+    >
+      <canvas
+        ref={canvasRef}
         className="block w-full h-[120vh]"
+        style={{ willChange: 'transform' }}
       />
     </motion.div>
   );
